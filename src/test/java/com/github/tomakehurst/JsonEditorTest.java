@@ -1,5 +1,7 @@
 package com.github.tomakehurst;
 
+import static com.github.tomakehurst.JsonEditor.copyOf;
+import static com.github.tomakehurst.JsonEditor.json;
 import static com.github.tomakehurst.JsonEditor.newArray;
 import static com.github.tomakehurst.JsonEditor.newAttribute;
 import static com.github.tomakehurst.JsonEditor.newObject;
@@ -7,6 +9,7 @@ import static org.hamcrest.Matchers.is;
 import static org.junit.Assert.assertThat;
 
 import java.io.FileReader;
+import java.util.NoSuchElementException;
 
 import net.minidev.json.JSONArray;
 
@@ -29,7 +32,7 @@ public class JsonEditorTest {
 	}
 
 	@Test
-	public void canUpdateAnAttributeViaJsonPath() throws Exception {
+	public void canUpdateAnAttribute() throws Exception {
 		assertThat(json.getString("$.one.two.attribute"), is("Old two value"));
 		
 		TestJson newJson = new TestJson(
@@ -38,6 +41,44 @@ public class JsonEditorTest {
 			.asString());
 		
 		assertThat(newJson.getString("$.one.two.attribute"), is("New two value"));
+	}
+	
+	@Test(expected=NoSuchElementException.class)
+	public void throwsExceptionWhenAttemptingToSetNonExistentAttribute() throws Exception {
+		JsonEditor.edit(EXAMPLE_JSON_FILE)
+			.object("$.one.two").set("nonAttribute", "New value");
+	}
+	
+	@Test
+	public void canAddAnAttribute() throws Exception {
+		String editedJson = 
+			JsonEditor.edit(EXAMPLE_JSON_FILE)
+			.object("$.one").add(newAttribute("four", 4))
+			.asString();
+		
+		TestJson json = new TestJson(editedJson);
+		assertThat(json.getInt("$.one.four"), is(4));
+	}
+	
+	String meaningOfLifeJson = 
+		"{ 								\n" +
+		"	\"meaning\": {				\n" +
+		"		\"of\": {				\n" +
+		"			\"life\": 42		\n" +
+		"		}						\n" +
+		"	}							\n" +
+		"} 								";
+	
+	@Test
+	public void canAddAnAttributeFromJsonLiteral() throws Exception {
+		String editedJson = 
+			JsonEditor.edit(EXAMPLE_JSON_FILE)
+			.object("$.one").add(newAttribute("four", json(meaningOfLifeJson)))
+			.asString();
+		
+		System.out.println(editedJson);
+		TestJson json = new TestJson(editedJson);
+		assertThat(json.getInt("$.one.four.meaning.of.life"), is(42));
 	}
 	
 	@Test
@@ -61,6 +102,17 @@ public class JsonEditorTest {
 		assertThat(testJson.getString("$.one.two.array[2]"), is("New item"));
 	}
 	
+	@Test
+	public void canInsertCopyIntoArray() throws Exception {
+		String editedJson = 
+			JsonEditor.edit(EXAMPLE_JSON_FILE)
+			.array("$.one.two.array").insert(0, copyOf("$.one.three"))
+			.asString();
+
+		TestJson testJson = new TestJson(editedJson);
+		assertThat(testJson.getString("$.one.two.array[0].attribute"), is("Three value"));
+	}
+	
 	@SuppressWarnings("unchecked")
 	@Test
 	public void canAddObjectToArray() throws Exception {
@@ -75,6 +127,18 @@ public class JsonEditorTest {
 		TestJson testJson = new TestJson(editedJson);
 		assertThat(testJson.getString("$.one.two.array[4].name"), is("Bob"));
 		assertThat(testJson.getInt("$.one.two.array[4].age"), is(31));
+	}
+	
+	@Test
+	public void canAddCopiedObjectToArray() throws Exception {
+		String editedJson =
+			JsonEditor.edit(EXAMPLE_JSON_FILE)
+				.array("$.one.two.array").add(
+						copyOf("$.one.three"))
+				.asString();
+		
+		TestJson testJson = new TestJson(editedJson);
+		assertThat(testJson.getString("$.one.two.array[4].attribute"), is("Three value"));
 	}
 	
 	@Test
@@ -155,10 +219,21 @@ public class JsonEditorTest {
 				.array("$.one.two.array").transform(concatenatePrevious())
 				.asString();
 		
-		System.out.println(editedJson);
 		TestJson testJson = new TestJson(editedJson);
 		assertThat(testJson.getString("$.one.two.array[0]"), is("item 1 item 4"));
 		assertThat(testJson.getString("$.one.two.array[2]"), is("item 3 item 2"));
+	}
+	
+	@Test
+	public void canCopyFromOnePartToAnother() throws Exception {
+		String editedJson =
+			JsonEditor.edit(EXAMPLE_JSON_FILE)
+				.object("$.one").add(newAttribute("four", copyOf("$.one.three")))
+				.asString();
+		
+		System.out.println(editedJson);
+		TestJson testJson = new TestJson(editedJson);
+		assertThat(testJson.getString("$.one.four.attribute"), is("Three value"));
 	}
 	
 	private ArrayItemTransformer<String, String> concatenatePrevious() {

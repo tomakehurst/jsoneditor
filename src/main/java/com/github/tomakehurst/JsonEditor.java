@@ -21,8 +21,16 @@ public class JsonEditor {
 	
 	public static JsonEditor edit(String filePath) throws IOException, ParseException {
 		JsonEditor builder = new JsonEditor();
-		builder.root = new JSONParser(JSONParser.MODE_PERMISSIVE).parse(CharStreams.toString(new FileReader(filePath)));
+		builder.root = parser().parse(CharStreams.toString(new FileReader(filePath)));
 		return builder;
+	}
+	
+	private static JSONParser parser() {
+		return  new JSONParser(JSONParser.MODE_PERMISSIVE);
+	}
+	
+	public Object find(String jsonPath) {
+		return JsonPath.read(root, jsonPath);
 	}
 	
 	public ObjectEditor object(String jsonPath) {
@@ -64,9 +72,16 @@ public class JsonEditor {
 		return map;
 	}
 	
-	
 	public static <T> JSONAttribute<Object> newAttribute(String key, T value) {
 		return new JSONAttribute<Object>(key, value);
+	}
+	
+	public static Object json(String jsonString) throws IOException, ParseException {
+		return parser().parse(jsonString);
+	}
+	
+	public static CopySpec copyOf(String jsonPath) {
+		return new CopySpec(jsonPath);
 	}
 	
 	public String asString() {

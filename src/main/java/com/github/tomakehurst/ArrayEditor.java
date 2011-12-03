@@ -22,13 +22,22 @@ public class ArrayEditor {
 	}
 	
 	public <T> JsonEditor add(T item) {
-		array.add(item);
+		array.add(getItemOrFetchCopy(item));
 		return editor;
 	}
 	
 	public <T> JsonEditor insert(int index, T item) {
-		array.add(index, item);
+		array.add(index, getItemOrFetchCopy(item));
 		return editor;
+	}
+	
+	@SuppressWarnings("unchecked")
+	private <T> T getItemOrFetchCopy(T item) {
+		if (item instanceof CopySpec) {
+			return (T) editor.find(((CopySpec) item).getJsonPath());
+		}
+		
+		return item;
 	}
 	
 	public JsonEditor remove(int startIndex, int endIndex) {
