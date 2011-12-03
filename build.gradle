@@ -9,7 +9,7 @@ apply plugin: 'eclipse'
 apply plugin: 'maven'
 
 sourceCompatibility = 1.6
-group = 'com.tomakehurst'
+group = 'com.github.tomakehurst'
 version = 1.0
 
 repositories {
@@ -37,7 +37,7 @@ uploadArchives {
     repositories {
         mavenDeployer {
             repository(url: "file:///Users/tomakehurst/dev/tomakehurst-mvn-repo/releases/")
-            pom.artifactId = 'jsonbuilder'
+            pom.artifactId = 'jsoneditor'
         }
     }
 }
