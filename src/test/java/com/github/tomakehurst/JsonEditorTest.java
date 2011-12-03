@@ -141,18 +141,22 @@ public class JsonEditorTest {
 		assertThat(testJson.getString("$.one.two.array[4].attribute"), is("Three value"));
 	}
 	
+	@SuppressWarnings("unchecked")
 	@Test
-	public void canAddArrayToArray() throws Exception {
+	public void canAddArrayAndObjectToArray() throws Exception {
 		String editedJson =
 			JsonEditor.edit(EXAMPLE_JSON_FILE)
 				.array("$.one.two.array").add(
-						newArray(1, 1, 2, 3, 5, 8))
+						newArray(1, 1, 2, 3, 5, 8),
+						newObject(
+							newAttribute("num", 877L)))
 				.asString();
 		
 		TestJson testJson = new TestJson(editedJson);
 		assertThat(testJson.getInt("$.one.two.array[4][0]"), is(1));
 		assertThat(testJson.getInt("$.one.two.array[4][3]"), is(3));
 		assertThat(testJson.getInt("$.one.two.array[4][5]"), is(8));
+		assertThat(testJson.getInt("$.one.two.array[5].num"), is(877));
 	}
 	
 	@Test

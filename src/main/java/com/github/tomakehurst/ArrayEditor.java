@@ -21,8 +21,11 @@ public class ArrayEditor {
 		this.array = array;
 	}
 	
-	public <T> JsonEditor add(T item) {
-		array.add(getItemOrFetchCopy(item));
+	public <T> JsonEditor add(T... items) {
+		for (T item: items) {
+			array.add(getItemOrFetchCopy(item));
+		}
+		
 		return editor;
 	}
 	
