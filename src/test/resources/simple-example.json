@@ -1,0 +1,16 @@
+{
+    "one": {
+        "two": {
+            "attribute": "Old two value",
+            "array": [
+                "item 1",
+                "item 2",
+                "item 3",
+                "item 4"
+            ]
+        },
+        "three": {
+            "attribute": "Three value"
+        }
+    }
+}
